@@ -1,0 +1,611 @@
+        :root { /* Variables globales de colores y estilos */
+    --pastel-purple: #D0ADC4; /* Morado pastel */
+    --pastel-blue: #BBDEFB; /* Azul pastel */
+    --pastel-green: #C8E6C9; /* Verde pastel */
+    --soft-pink: #F8BBD0; /* Rosa suave */
+    --light-grey: #F5F5F5; /* Gris claro */
+    --dark-blue-text: #3F51B5; /* Texto azul oscuro */
+    --medium-blue: #64B5F6; /* Azul medio */
+    --shadow-color: rgba(0, 0, 0, 0.08); /* Color de sombra */
+    --border-radius-lg: 15px; /* Radio de borde grande */
+    --border-radius-md: 10px; /* Radio de borde mediano */
+    --border-radius-sm: 8px; /* Radio de borde pequeño */
+    --goal-color: #FF6B6B; /* Color de la meta */
+    --start-color: #4ECDC4; /* Color de inicio */
+}
+
+body { /* Estilos del cuerpo del documento */
+    font-family: 'Open Sans', sans-serif; /* Fuente principal */
+    background: linear-gradient(135deg, #FAD0C4 0%, #FFD1FF 100%); /* Fondo degradado */
+    text-align: center; /* Texto centrado */
+    margin: 0; /* Sin margen */
+    padding: 30px; /* Espaciado interno */
+    color: #333; /* Color de texto */
+    min-height: 100vh; /* Altura mínima de la pantalla completa */
+    display: flex; /* Usar flexbox */
+    flex-direction: column; /* Dirección en columna */
+    align-items: center; /* Centrar horizontalmente */
+    justify-content: center; /* Centrar verticalmente */
+}
+
+h1 { /* Estilos para encabezado principal */
+    font-family: 'Montserrat', sans-serif; /* Fuente del título */
+    color: var(--dark-blue-text); /* Color del título */
+    font-weight: 600; /* Grosor del título */
+    margin-bottom: 25px; /* Margen inferior */
+    text-shadow: 1px 1px 2px var(--shadow-color); /* Sombra del texto */
+}
+
+#game-container { /* Contenedor principal del juego */
+    display: flex; /* Flexbox para organizar elementos */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: flex-start; /* Alinear al inicio verticalmente */
+    gap: 40px; /* Espaciado entre elementos */
+    flex-wrap: wrap; /* Permite que los elementos se muevan a la siguiente línea */
+    max-width: 1200px; /* Ancho máximo */
+    width: 100%; /* Ancho completo */
+}
+
+    #board { /* Contenedor del tablero */
+    display: grid; /* Usar grid para organizar las celdas */
+    grid-template-columns: repeat(10, 55px); /* 10 columnas de 55px cada una */
+    grid-template-rows: repeat(10, 55px); /* 10 filas de 55px cada una */
+    border: 5px solid var(--dark-blue-text); /* Borde del tablero */
+    border-radius: var(--border-radius-lg); /* Bordes redondeados */
+    background-color: var(--pastel-blue); /* Fondo del tablero */
+    box-shadow: 0 8px 20px var(--shadow-color); /* Sombra del tablero */
+    overflow: hidden; /* Oculta cualquier desbordamiento */
+    position: relative; /* Posición relativa para elementos internos */
+}
+
+/* META - Casilla de inicio */
+.start-cell { /* Estilo para la casilla de inicio */
+    background: linear-gradient(135deg, var(--start-color), #45B7D1); /* Fondo degradado */
+    color: white; /* Color del texto */
+    font-weight: 700; /* Texto en negrita */
+    font-size: 14px; /* Tamaño del texto */
+    border: 3px solid #26A69A; /* Borde especial */
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.3); /* Sombra interna */
+    position: relative; /* Posición relativa para pseudo-elementos */
+    animation: glow 2s ease-in-out infinite alternate; /* Animación de resplandor */
+}
+
+.start-cell::before { /* Pseudo-elemento para mostrar texto encima de la casilla */
+    content: '🏁 INICIO'; /* Texto que aparece */
+    position: absolute; /* Posición absoluta */
+    top: -25px; /* Desplazamiento hacia arriba */
+    left: 50%; /* Centrado horizontal */
+    transform: translateX(-50%); /* Ajusta el centrado exacto */
+    background: var(--start-color); /* Fondo del texto */
+    color: white; /* Color del texto */
+    padding: 5px 10px; /* Espaciado interno */
+    border-radius: 15px; /* Bordes redondeados */
+    font-size: 12px; /* Tamaño de fuente */
+    font-weight: 600; /* Grosor de fuente */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2); /* Sombra del texto */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+}
+
+    .start-cell::after { /* Pseudo-elemento para añadir un ícono en la casilla de inicio */
+    content: '🚀'; /* Ícono cohete */
+    position: absolute; /* Posición absoluta dentro de la celda */
+    bottom: 2px; /* Separación desde la parte inferior */
+    right: 2px; /* Separación desde la derecha */
+    font-size: 1.5em; /* Tamaño del ícono */
+}
+
+/* SALIDA - Casilla de meta */
+.goal-cell { /* Estilo para la casilla de meta */
+    background: linear-gradient(135deg, var(--goal-color), #FF8E53); /* Fondo degradado */
+    color: white; /* Color del texto */
+    font-weight: 700; /* Texto en negrita */
+    font-size: 14px; /* Tamaño del texto */
+    border: 3px solid #FF5722; /* Borde especial */
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.3); /* Sombra interna */
+    position: relative; /* Posición relativa para pseudo-elementos */
+    animation: victoryGlow 2s ease-in-out infinite alternate; /* Animación de resplandor */
+}
+
+.goal-cell::before { /* Pseudo-elemento para mostrar texto encima de la casilla de meta */
+    content: '🎯 META'; /* Texto que aparece */
+    position: absolute; /* Posición absoluta */
+    top: -25px; /* Desplazamiento hacia arriba */
+    left: 50%; /* Centrado horizontal */
+    transform: translateX(-50%); /* Ajusta el centrado exacto */
+    background: var(--goal-color); /* Fondo del texto */
+    color: white; /* Color del texto */
+    padding: 5px 10px; /* Espaciado interno */
+    border-radius: 15px; /* Bordes redondeados */
+    font-size: 12px; /* Tamaño de fuente */
+    font-weight: 600; /* Grosor de fuente */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2); /* Sombra del texto */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+}
+
+.goal-cell::after { /* Pseudo-elemento para añadir un ícono en la casilla de meta */
+    content: '🏆'; /* Ícono trofeo */
+    position: absolute; /* Posición absoluta */
+    bottom: 2px; /* Separación desde la parte inferior */
+    right: 2px; /* Separación desde la derecha */
+    font-size: 1.5em; /* Tamaño del ícono */
+}
+
+   @keyframes glow { /* Animación de resplandor para la casilla de inicio */
+    0% { 
+        box-shadow: inset 0 0 10px rgba(255,255,255,0.3), 0 0 5px var(--start-color); /* Sombra inicial */
+    }
+    100% { 
+        box-shadow: inset 0 0 15px rgba(255,255,255,0.5), 0 0 15px var(--start-color); /* Sombra final */
+    }
+}
+
+@keyframes victoryGlow { /* Animación de resplandor para la casilla de meta */
+    0% { 
+        box-shadow: inset 0 0 10px rgba(255,255,255,0.3), 0 0 5px var(--goal-color); /* Sombra inicial */
+    }
+    100% { 
+        box-shadow: inset 0 0 15px rgba(255,255,255,0.5), 0 0 20px var(--goal-color); /* Sombra final */
+    }
+}
+
+.cell { /* Estilo general para cada celda del tablero */
+    border: 1px solid rgba(255, 255, 255, 0.5); /* Borde semitransparente */
+    display: flex; /* Usar flexbox para centrar contenido */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Centrar verticalmente */
+    font-size: 13px; /* Tamaño del texto */
+    font-weight: 400; /* Peso normal del texto */
+    position: relative; /* Para posicionar elementos hijos */
+    background-color: rgba(255, 255, 255, 0.3); /* Fondo semitransparente */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transiciones suaves */
+}
+
+.cell:nth-child(even) { /* Celdas pares */
+    background-color: rgba(255, 255, 255, 0.4); /* Fondo ligeramente distinto */
+}
+
+.cell:hover { /* Efecto hover al pasar el mouse */
+    background-color: rgba(255, 255, 255, 0.6); /* Fondo más brillante */
+    transform: scale(1.05); /* Aumenta ligeramente el tamaño */
+}
+
+/* Estilos para serpientes y escaleras más visuales - Estilo tradicional */
+.snake-start { /* Celda donde empieza una serpiente */
+    background: linear-gradient(135deg, #FF6B6B, #EE5A52); /* Fondo degradado rojo */
+    color: white; /* Texto blanco */
+    font-weight: 600; /* Texto seminegrita */
+    position: relative; /* Para posibles elementos hijos */
+    border: 2px solid #D63031; /* Borde rojo */
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); /* Sombra interna */
+}
+    .snake-start::before { /* Icono de serpiente en la celda */
+    content: '🐍'; /* Emoji de serpiente */
+    position: absolute; /* Posición absoluta dentro de la celda */
+    top: 2px; /* Alineación superior */
+    left: 2px; /* Alineación izquierda */
+    font-size: 1.3em; /* Tamaño del emoji */
+    z-index: 1; /* Para que esté por encima de otros elementos */
+}
+
+.snake-start::after { /* Etiqueta de texto “SERP” debajo de la celda */
+    content: 'SERP'; /* Texto a mostrar */
+    position: absolute; /* Posición absoluta dentro de la celda */
+    bottom: -20px; /* Ubicación debajo de la celda */
+    left: 50%; /* Centrado horizontal */
+    transform: translateX(-50%); /* Ajuste para centrar perfectamente */
+    background: #FF6B6B; /* Fondo rojo */
+    color: white; /* Texto blanco */
+    padding: 2px 6px; /* Espaciado interno */
+    border-radius: 10px; /* Bordes redondeados */
+    font-size: 10px; /* Tamaño de letra */
+    font-weight: 600; /* Texto semi-negrita */
+    white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+.ladder-start { /* Celda donde empieza una escalera */
+    background: linear-gradient(135deg, #55EFC4, #00B894); /* Fondo degradado verde */
+    color: white; /* Texto blanco */
+    font-weight: 600; /* Texto semi-negrita */
+    position: relative; /* Para elementos hijos posicionados */
+    border: 2px solid #00A085; /* Borde verde oscuro */
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); /* Sombra interna */
+}
+    .ladder-start::before { /* Icono de escalera en la celda */
+    content: '⬆️'; /* Emoji de flecha hacia arriba */
+    position: absolute; /* Posición absoluta dentro de la celda */
+    top: 2px; /* Alineación superior */
+    left: 2px; /* Alineación izquierda */
+    font-size: 1.3em; /* Tamaño del emoji */
+    z-index: 1; /* Para que esté por encima de otros elementos */
+}
+
+.ladder-start::after { /* Etiqueta de texto “ESC” debajo de la celda */
+    content: 'ESC'; /* Texto a mostrar */
+    position: absolute; /* Posición absoluta dentro de la celda */
+    bottom: -20px; /* Ubicación debajo de la celda */
+    left: 50%; /* Centrado horizontal */
+    transform: translateX(-50%); /* Ajuste para centrar perfectamente */
+    background: #55EFC4; /* Fondo verde */
+    color: white; /* Texto blanco */
+    padding: 2px 6px; /* Espaciado interno */
+    border-radius: 10px; /* Bordes redondeados */
+    font-size: 10px; /* Tamaño de letra */
+    font-weight: 600; /* Texto semi-negrita */
+    white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+.hooke-event { /* Celda con evento de la Ley de Hooke */
+    background: linear-gradient(135deg, var(--pastel-purple), #B39DDB); /* Fondo degradado púrpura */
+    color: var(--dark-blue-text); /* Texto color azul oscuro */
+    font-weight: 600; /* Texto semi-negrita */
+    animation: pulse 1.5s infinite alternate; /* Animación de pulso */
+    position: relative; /* Para elementos hijos posicionados */
+    border: 2px solid #9575CD; /* Borde morado */
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); /* Sombra interna */
+}
+
+.hooke-event::before { /* Icono de engranaje en la celda */
+    content: '⚙️'; /* Emoji de engranaje */
+    position: absolute; /* Posición absoluta dentro de la celda */
+    top: 2px; /* Alineación superior */
+    left: 2px; /* Alineación izquierda */
+    font-size: 1.2em; /* Tamaño del emoji */
+    z-index: 1; /* Para que esté por encima de otros elementos */
+}
+        .hooke-event::after { /* Etiqueta de texto “HOOK” debajo de la celda de evento Hooke */
+    content: 'HOOK'; /* Texto a mostrar */
+    position: absolute; /* Posición absoluta dentro de la celda */
+    bottom: -20px; /* Ubicación debajo de la celda */
+    left: 50%; /* Centrado horizontal */
+    transform: translateX(-50%); /* Ajuste para centrar perfectamente */
+    background: var(--pastel-purple); /* Fondo púrpura claro */
+    color: var(--dark-blue-text); /* Texto azul oscuro */
+    padding: 2px 6px; /* Espaciado interno */
+    border-radius: 10px; /* Bordes redondeados */
+    font-size: 10px; /* Tamaño de letra */
+    font-weight: 600; /* Texto semi-negrita */
+    white-space: nowrap; /* Evita que el texto se rompa */
+}
+
+@keyframes pulse { /* Animación de pulso para eventos Hooke */
+    0% { transform: scale(1); box-shadow: 0 0 5px rgba(159, 125, 219, 0.5); }
+    100% { transform: scale(1.05); box-shadow: 0 0 15px rgba(159, 125, 219, 0.8); }
+}
+
+/* Estilo tradicional del tablero - números más visibles */
+.cell span { 
+    z-index: 2; /* Por encima de otros elementos de la celda */
+    position: relative; /* Posición relativa para control de apilamiento */
+}
+
+.player1, .player2 { /* Piezas de los jugadores */
+    border-radius: 50%; /* Forma circular */
+    width: 30px; /* Ancho de la pieza */
+    height: 30px; /* Alto de la pieza */
+    font-size: 13px; /* Tamaño de número dentro de la pieza */
+    font-weight: 600; /* Número semi-negrita */
+    display: flex; /* Para centrar contenido */
+    justify-content: center; /* Centrado horizontal */
+    align-items: center; /* Centrado vertical */
+    position: absolute; /* Posicionamiento dentro de la celda */
+    z-index: 10; /* Por encima de otros elementos */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra suave */
+    transition: transform 0.5s ease-out, background-color 0.3s ease; /* Animaciones suaves */
+    border: 3px solid rgba(255,255,255,0.8); /* Borde blanco semitransparente */
+}
+
+.player1 { /* Color de la pieza del jugador 1 */
+    background: linear-gradient(135deg, #7986CB, #5C6BC0); /* Degradado azul */
+    color: white; /* Número en blanco */
+}
+
+.player2 { /* Color de la pieza del jugador 2 */
+    background: linear-gradient(135deg, #EF9A9A, #E57373); /* Degradado rosa/rojo */
+    color: white; /* Número en blanco */
+}
+
+.player1::before { /* Número dentro de la pieza del jugador 1 */
+    content: '1'; /* Número del jugador 1 */
+    font-weight: 700; /* Negrita */
+}
+
+.player2::before { /* Número dentro de la pieza del jugador 2 */
+    content: '2'; /* Número del jugador 2 */
+    font-weight: 700; /* Negrita */
+}
+
+#controls { /* Contenedor de controles del juego */
+    background-color: white; /* Fondo blanco */
+    border-radius: var(--border-radius-lg); /* Bordes redondeados grandes */
+    padding: 30px; /* Espaciado interno */
+    width: 320px; /* Ancho fijo */
+    box-shadow: 0 8px 20px var(--shadow-color); /* Sombra externa */
+    display: flex; /* Contenedor flexible */
+    flex-direction: column; /* Dirección vertical */
+    align-items: center; /* Centrado horizontal */
+    justify-content: center; /* Centrado vertical */
+    gap: 15px; /* Espaciado entre elementos */
+}
+
+#controls p { /* Párrafos dentro de controles */
+    font-family: 'Montserrat', sans-serif; /* Fuente personalizada */
+    font-size: 16px; /* Tamaño de texto */
+    color: #555; /* Color gris oscuro */
+    margin: 0; /* Sin margen */
+}
+
+#controls p span { /* Texto resaltado dentro de párrafos */
+    font-weight: 600; /* Semi-negrita */
+    color: var(--dark-blue-text); /* Color azul oscuro */
+}
+    button { /* Estilo general para todos los botones */
+    padding: 12px 25px; /* Espaciado interno */
+    margin: 5px 0; /* Margen superior e inferior */
+    background: linear-gradient(135deg, var(--medium-blue), #42A5F5); /* Degradado azul */
+    color: white; /* Texto blanco */
+    border: none; /* Sin borde */
+    border-radius: var(--border-radius-sm); /* Bordes redondeados pequeños */
+    cursor: pointer; /* Cursor tipo puntero */
+    font-size: 15px; /* Tamaño de texto */
+    font-weight: 600; /* Semi-negrita */
+    transition: all 0.3s ease; /* Transición suave */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* Sombra suave */
+}
+
+button:hover:not(:disabled) { /* Efecto hover para botones activos */
+    transform: translateY(-2px); /* Levanta el botón */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.15); /* Sombra más intensa */
+}
+
+button:disabled { /* Estilo para botones deshabilitados */
+    background: linear-gradient(135deg, #CFD8DC, #B0BEC5); /* Fondo gris degradado */
+    cursor: not-allowed; /* Cursor prohibido */
+    box-shadow: none; /* Sin sombra */
+    transform: none; /* Sin transformación */
+}
+
+#dice-display { /* Contenedor del dado */
+    width: 70px; /* Ancho */
+    height: 70px; /* Alto */
+    border: 4px solid var(--dark-blue-text); /* Borde azul oscuro */
+    border-radius: var(--border-radius-md); /* Bordes medianos redondeados */
+    display: flex; /* Contenedor flexible */
+    justify-content: center; /* Centrado horizontal */
+    align-items: center; /* Centrado vertical */
+    font-size: 3em; /* Tamaño del número del dado */
+    font-weight: 600; /* Número semi-negrita */
+    color: var(--dark-blue-text); /* Color del número */
+    background: linear-gradient(135deg, white, #F5F5F5); /* Fondo degradado */
+    box-shadow: 0 4px 10px var(--shadow-color); /* Sombra del dado */
+    margin: 15px 0; /* Margen superior e inferior */
+    transition: transform 0.1s ease-out; /* Animación suave al girar */
+}
+
+@keyframes roll { /* Animación de rotación del dado */
+    0% { transform: rotateY(0deg) rotateX(0deg); }
+    25% { transform: rotateY(90deg) rotateX(90deg); }
+    50% { transform: rotateY(180deg) rotateX(180deg); }
+    75% { transform: rotateY(270deg) rotateX(270deg); }
+    100% { transform: rotateY(360deg) rotateX(360deg); }
+}
+
+.rolling { /* Clase activa durante la animación del dado */
+    animation: roll 0.5s cubic-bezier(.17,.67,.83,.67) infinite; /* Animación continua */
+    background: linear-gradient(135deg, #FFF9C4, #FFF176); /* Fondo amarillo durante la animación */
+}
+
+#message { /* Contenedor de mensajes */
+    margin-top: 20px; /* Margen superior */
+    padding: 12px; /* Espaciado interno */
+    border-radius: var(--border-radius-md); /* Bordes medianos redondeados */
+    min-height: 25px; /* Altura mínima */
+    font-size: 14px; /* Tamaño del texto */
+    font-weight: 400; /* Peso normal */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Sombra interna */
+    color: #424242; /* Color gris oscuro */
+    transition: all 0.3s ease; /* Transición suave para cambios */
+}
+
+.success { /* Mensaje de éxito */
+    background: linear-gradient(135deg, #DCEDC8, #C5E1A5); /* Fondo verde degradado */
+    color: #388E3C; /* Texto verde oscuro */
+    border-left: 4px solid #4CAF50; /* Barra lateral verde */
+}
+
+.error { /* Mensaje de error */
+    background: linear-gradient(135deg, #FFCDD2, #EF9A9A); /* Fondo rojo degradado */
+    color: #D32F2F; /* Texto rojo oscuro */
+    border-left: 4px solid #F44336; /* Barra lateral roja */
+}
+
+.warning { /* Mensaje de advertencia */
+    background: linear-gradient(135deg, #FFF9C4, #FFECB3); /* Fondo amarillo degradado */
+    color: #FF8F00; /* Texto naranja */
+    border-left: 4px solid #FF9800; /* Barra lateral naranja */
+}
+
+.info { /* Mensaje informativo */
+    background: linear-gradient(135deg, #E3F2FD, #BBDEFB); /* Fondo azul claro degradado */
+    color: #1976D2; /* Texto azul oscuro */
+    border-left: 4px solid #2196F3; /* Barra lateral azul */
+}
+
+.hidden { /* Elementos ocultos */
+    display: none;
+}
+
+#quiz-modal { /* Modal para el quiz */
+    position: fixed; /* Fijo en la pantalla */
+    top: 0; /* Arriba */
+    left: 0; /* Izquierda */
+    width: 100%; /* Ancho completo */
+    height: 100%; /* Alto completo */
+    background-color: rgba(0,0,0,0.5); /* Fondo semitransparente */
+    display: none; /* Oculto por defecto */
+    justify-content: center; /* Centrado horizontal */
+    align-items: center; /* Centrado vertical */
+    z-index: 1000; /* Por encima de otros elementos */
+    backdrop-filter: blur(5px); /* Efecto blur detrás del modal */
+}
+    #quiz-content { /* Contenedor principal del quiz */
+    background: white; /* Fondo blanco */
+    padding: 35px; /* Espaciado interno */
+    border-radius: var(--border-radius-lg); /* Bordes grandes redondeados */
+    max-width: 550px; /* Ancho máximo */
+    width: 90%; /* Ancho relativo */
+    max-height: 85vh; /* Altura máxima relativa a la ventana */
+    overflow-y: auto; /* Scroll vertical si el contenido excede */
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25); /* Sombra profunda */
+    position: relative; /* Posicionamiento relativo */
+    animation: modalFadeIn 0.3s ease-out; /* Animación de aparición */
+    border: 1px solid rgba(255,255,255,0.2); /* Borde sutil */
+}
+
+@keyframes modalFadeIn { /* Animación de fade-in del modal */
+    from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+#quiz-content h3 { /* Título del quiz */
+    font-family: 'Montserrat', sans-serif; /* Fuente */
+    color: var(--dark-blue-text); /* Color azul oscuro */
+    margin-top: 0; /* Sin margen superior */
+    font-weight: 600; /* Semi-negrita */
+    font-size: 24px; /* Tamaño del texto */
+    border-bottom: 3px solid var(--pastel-blue); /* Línea inferior azul claro */
+    padding-bottom: 10px; /* Espacio interno inferior */
+    margin-bottom: 20px; /* Margen inferior */
+    text-align: center; /* Centrado del texto */
+}
+
+#quiz-question { /* Pregunta del quiz */
+    font-family: 'Open Sans', sans-serif; /* Fuente */
+    font-size: 17px; /* Tamaño de texto */
+    margin: 20px 0 30px; /* Margen superior e inferior */
+    line-height: 1.6; /* Altura de línea */
+    color: #444; /* Color gris oscuro */
+    background: #F8F9FA; /* Fondo gris claro */
+    padding: 15px; /* Espaciado interno */
+    border-radius: var(--border-radius-md); /* Bordes medianos redondeados */
+    border-left: 4px solid var(--pastel-purple); /* Línea izquierda púrpura */
+}
+
+.quiz-options { /* Contenedor de opciones */
+    display: flex; /* Flexbox */
+    flex-direction: column; /* Dirección vertical */
+    gap: 12px; /* Espacio entre opciones */
+    margin: 25px 0; /* Margen superior e inferior */
+}
+
+.quiz-option { /* Cada opción del quiz */
+    padding: 15px; /* Espaciado interno */
+    border: var(--pastel-blue); /* Borde */
+    border-radius: var(--border-radius-md); /* Bordes medianos redondeados */
+    cursor: pointer; /* Cursor tipo puntero */
+    transition: all 0.3s ease; /* Transición suave */
+    background-color: var(--light-grey); /* Fondo gris claro */
+    font-size: 16px; /* Tamaño de texto */
+    color: #555; /* Color de texto */
+    text-align: left; /* Alineación izquierda */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Sombra ligera */
+    position: relative; /* Posicionamiento relativo */
+    overflow: hidden; /* Oculta desbordamiento */
+}
+
+.quiz-option::before { /* Barra lateral de cada opción */
+    content: ''; /* Contenido vacío */
+    position: absolute; /* Posición absoluta */
+    left: 0; /* A la izquierda */
+    top: 0; /* Arriba */
+    bottom: 0; /* Abajo */
+    width: 4px; /* Ancho de la barra */
+    background: var(--pastel-blue); /* Color azul claro */
+    transition: width 0.3s ease; /* Animación de expansión */
+}
+
+.quiz-option:hover { /* Efecto hover sobre opción */
+    border-color: var(--medium-blue); /* Cambio de borde */
+    background-color: #E3F2FD; /* Fondo azul claro */
+    transform: translateX(5px); /* Mueve ligeramente a la derecha */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Sombra más pronunciada */
+}
+
+.quiz-option:hover::before { /* Expande barra al hacer hover */
+    width: 100%; /* Barra completa */
+}
+
+.quiz-option.selected { /* Opción seleccionada */
+    border-color: var(--dark-blue-text); /* Borde azul oscuro */
+    background: linear-gradient(135deg, #C5CAE9, #9FA8DA); /* Fondo degradado */
+    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3); /* Sombra azul */
+}
+
+.quiz-option.selected::before { /* Barra de opción seleccionada */
+    background: var(--dark-blue-text); /* Color azul oscuro */
+    width: 100%; /* Ancho completo */
+}
+
+.quiz-option.correct { /* Opción correcta */
+    border-color: #4CAF50; /* Borde verde */
+    background: linear-gradient(135deg, #E8F5E9, #C8E6C9); /* Fondo verde degradado */
+    color: #2E7D32; /* Texto verde oscuro */
+    font-weight: 600; /* Semi-negrita */
+}
+
+.quiz-option.correct::before { /* Barra opción correcta */
+    background: #4CAF50; /* Verde */
+    width: 100%; /* Ancho completo */
+}
+
+.quiz-option.incorrect { /* Opción incorrecta */
+    border-color: #F44336; /* Borde rojo */
+    background: linear-gradient(135deg, #FFEBEE, #FFCDD2); /* Fondo rojo degradado */
+    color: #C62828; /* Texto rojo oscuro */
+    font-weight: 600; /* Semi-negrita */
+}
+
+.quiz-option.incorrect::before { /* Barra opción incorrecta */
+    background: #F44336; /* Rojo */
+    width: 100%; /* Ancho completo */
+}
+
+#quiz-feedback { /* Contenedor de retroalimentación */
+    margin: 20px 0; /* Margen superior e inferior */
+    padding: 15px; /* Espaciado interno */
+    border-radius: var(--border-radius-md); /* Bordes medianos */
+    display: none; /* Oculto por defecto */
+    font-size: 15px; /* Tamaño de texto */
+    font-weight: 400; /* Peso normal */
+    line-height: 1.5; /* Altura de línea */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Sombra interna */
+    border-left: 4px solid; /* Línea izquierda */
+}
+
+.feedback-correct { /* Retroalimentación correcta */
+    background: linear-gradient(135deg, #C8E6C9, #AED581); /* Fondo verde degradado */
+    color: #2E7D32; /* Texto verde oscuro */
+    border-left-color: #4CAF50; /* Línea izquierda verde */
+}
+
+.feedback-incorrect { /* Retroalimentación incorrecta */
+    background: linear-gradient(135deg, #FFCDD2, #EF9A9A); /* Fondo rojo degradado */
+    color: #C62828; /* Texto rojo oscuro */
+    border-left-color: #F44336; /* Línea izquierda roja */
+}
+
+#quiz-submit, #quiz-next { /* Botones del quiz */
+    margin-top: 20px; /* Margen superior */
+    width: fit-content; /* Ancho ajustable al contenido */
+    align-self: center; /* Centrado horizontal */
+    padding: 12px 30px; /* Espaciado interno */
+    font-size: 16px; /* Tamaño de texto */
+    border-radius: var(--border-radius-md); /* Bordes medianos */
+}
+
+#quiz-submit { /* Botón enviar */
+    background: linear-gradient(135deg, #4CAF50, #45A049); /* Fondo verde degradado */
+}
+
+#quiz-next { /* Botón siguiente */
+    background: linear-gradient(135deg, var(--medium-blue), #42A5F5); /* Fondo azul degradado */
+}

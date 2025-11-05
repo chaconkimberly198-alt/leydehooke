@@ -1,0 +1,94 @@
+/* ===== CALCULADORA ===== */
+#calculadora {
+    margin-top: 40px; /* Espacio superior respecto al contenido anterior */
+    padding: 25px; /* Espaciado interno */
+    background-color: #eaf6ff; /* Fondo azul claro */
+    border-radius: 15px; /* Bordes redondeados */
+    box-shadow: var(--sombra); /* Agrega sombra suave */
+}
+
+#calculadora h3 {
+    color: var(--color-secundario); /* Título en color celeste */
+    margin-bottom: 10px; /* Espacio inferior */
+}
+
+#calculadora input {
+    width: 100%; /* Ocupa todo el ancho disponible */
+    padding: 10px; /* Espaciado interno */
+    margin: 8px 0 15px 0; /* Márgenes superior e inferior */
+    border: 1px solid #c8d8ff; /* Borde azul claro */
+    border-radius: 10px; /* Bordes redondeados */
+    font-size: 1em; /* Tamaño estándar de texto */
+    outline: none; /* Elimina borde al hacer clic */
+    transition: 0.3s; /* Suaviza el cambio de estilo */
+}
+
+#calculadora input:focus {
+    border-color: var(--color-principal); /* Borde morado al enfocar */
+    background-color: #fff9ff; /* Fondo más claro al enfocar */
+}
+
+#calculadora button {
+    display: block; /* Ocupa una línea completa */
+    width: 100%; /* Botón ancho completo */
+    background: var(--color-principal); /* Fondo morado */
+    color: white; /* Texto blanco */
+    border: none; /* Sin borde */
+    padding: 12px; /* Espaciado interno */
+    border-radius: 12px; /* Bordes redondeados */
+    font-size: 1.05em; /* Tamaño de texto ligeramente más grande */
+    cursor: pointer; /* Cursor de mano al pasar el mouse */
+    transition: background 0.3s ease; /* Suaviza el cambio de color */
+}
+
+#calculadora button:hover {
+    background: var(--color-secundario); /* Cambia a celeste al pasar el mouse */
+}
+
+#resultado {
+    font-weight: bold; /* Texto en negrita */
+    color: var(--color-principal); /* Color morado */
+    margin-top: 10px; /* Espacio superior */
+}
+
+/* ===== PIE DE PÁGINA ===== */
+footer {
+    text-align: center; /* Centra el texto */
+    background: var(--color-principal); /* Fondo morado */
+    color: white; /* Texto blanco */
+    padding: 20px 0; /* Espaciado vertical */
+    border-radius: 40px 40px 0 0; /* Bordes superiores redondeados */
+    box-shadow: var(--sombra); /* Sombra ligera */
+    font-size: 0.95em; /* Tamaño de texto ligeramente reducido */
+    display: flex; /* Usa flexbox para centrar elementos */
+    justify-content: center; /* Centra horizontalmente */
+    align-items: center; /* Centra verticalmente */
+    flex-direction: column; /* Apila elementos en columna */
+}
+
+/* ===== EFECTOS VISUALES ===== */
+section::before {
+    content: "🌸"; /* Agrega un ícono decorativo antes de cada sección */
+    display: block; /* Lo convierte en un bloque visible */
+    text-align: center; /* Centra el ícono */
+    font-size: 1.5em; /* Tamaño del ícono */
+    margin-bottom: 10px; /* Espacio inferior */
+    opacity: 0.6; /* Ligera transparencia */
+}
+
+/* ===== BOTÓN DE JUEGO ===== */
+#btn-juego {
+    background-color: #6C63FF; /* Fondo violeta brillante */
+    color: white; /* Texto blanco */
+    padding: 12px 25px; /* Espaciado interno */
+    border: none; /* Sin borde */
+    border-radius: 10px; /* Bordes redondeados */
+    cursor: pointer; /* Cursor de mano */
+    font-size: 18px; /* Tamaño de texto grande */
+    font-weight: bold; /* Texto en negrita */
+    transition: background-color 0.3s ease; /* Suaviza cambio de color */
+}
+
+#btn-juego:hover {
+    background-color: #5548c8; /* Oscurece al pasar el mouse */
+}

@@ -1,0 +1,518 @@
+<!DOCTYPE html> <!-- Indica que el documento es HTML5 --> 
+<html lang="es"> <!-- Define el idioma del contenido -->
+<head>
+    <meta charset="UTF-8"> <!-- Codificación de caracteres en español -->
+    <link rel="StyleSheet" href="estilos3.css" type="text/css"> <!-- Conecta el archivo CSS externo -->
+    <title>Serpientes y Escaleras: </title> <!-- Título de la pestaña del navegador -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Open+Sans:wght@300;400&display=swap" rel="stylesheet"> <!-- Importa fuentes desde Google Fonts -->
+</head>
+
+<body> <!-- Cuerpo principal del documento -->
+    <h1>🎲 Serpientes y Escaleras: La Ley de Hooke ⚙️</h1> <!-- Título principal de la página -->
+
+    <div id="game-container"> <!-- Contenedor principal del tablero y controles -->
+        <div id="board"></div> <!-- Aquí se genera el tablero dinámicamente -->
+
+        <div id="controls"> <!-- Sección de controles del juego -->
+            <p><strong>¡Objetivo:</strong> Llega primero a la 
+                <span style="color: var(--goal-color); font-weight: 700;">META 🏆</span>
+            </p> <!-- Explicación del objetivo del juego -->
+
+            <p>Jugador 
+                <span id="current-player" style="color: var(--dark-blue-text); font-weight: 700;">1</span>, 
+                es tu turno.
+            </p> <!-- Muestra el jugador actual -->
+
+            <button id="roll-dice">🎲 Lanzar Dado</button> <!-- Botón para tirar el dado -->
+
+            <div id="dice-display">?</div> <!-- Muestra el número que salió en el dado -->
+
+            <p>Posición Jugador 1: 
+                <span id="player1-pos" style="color: #7986CB; font-weight: 600;">1</span>
+            </p> <!-- Muestra la posición actual del jugador 1 -->
+
+            <p>Posición Jugador 2: 
+                <span id="player2-pos" style="color: #EF9A9A; font-weight: 600;">1</span>
+            </p> <!-- Muestra la posición actual del jugador 2 -->
+
+            <div id="message" class="hidden info"></div> <!-- Zona donde aparecen los mensajes del juego -->
+        </div> <!-- Fin de la sección de controles -->
+    </div> <!-- Fin del contenedor principal -->
+
+    <!-- Modal de Quiz -->
+    <div id="quiz-modal"> <!-- Ventana emergente para mostrar preguntas del quiz -->
+        <div id="quiz-content"> <!-- Contenido interno de la ventana -->
+            <h3>🧠 Pregunta sobre la Ley de Hooke</h3> <!-- Título del modal -->
+            <div id="quiz-question"></div> <!-- Aquí se mostrará la pregunta dinámica -->
+            <div class="quiz-options" id="quiz-options"></div> <!-- Contenedor de las opciones de respuesta -->
+            <div id="quiz-feedback"></div> <!-- Muestra si la respuesta fue correcta o incorrecta -->
+            <button id="quiz-submit">Responder</button> <!-- Botón para enviar respuesta -->
+            <button id="quiz-next" style="display: none;">Siguiente</button> <!-- Botón para avanzar tras responder -->
+        </div> <!-- Cierre del contenido interno -->
+    </div> <!-- Cierre del modal -->
+
+   <script> <!-- Inicio del bloque de JavaScript -->
+
+    const boardSize = 100; // Tamaño total del tablero (100 casillas)
+    const boardElement = document.getElementById('board'); // Obtiene el elemento HTML donde se dibuja el tablero
+    const rollDiceButton = document.getElementById('roll-dice'); // Obtiene el botón que lanza el dado
+    const diceDisplayElement = document.getElementById('dice-display'); // Muestra el número que salió en el dado
+    const player1PosElement = document.getElementById('player1-pos'); // Muestra la posición actual del jugador 1
+    const player2PosElement = document.getElementById('player2-pos'); // Muestra la posición actual del jugador 2
+    const currentPlayerElement = document.getElementById('current-player'); // Muestra qué jugador tiene el turno
+    const messageElement = document.getElementById('message'); // Contenedor de mensajes informativos del juego
+
+    // ===== Elementos del QUIZ =====
+    const quizModal = document.getElementById('quiz-modal'); // Ventana emergente que contiene el quiz
+    const quizQuestion = document.getElementById('quiz-question'); // Contenedor donde aparece la pregunta del quiz
+    const quizOptions = document.getElementById('quiz-options'); // Contenedor donde se generan las opciones de respuesta
+    const quizFeedback = document.getElementById('quiz-feedback'); // Muestra si la respuesta fue correcta o incorrecta
+    const quizSubmit = document.getElementById('quiz-submit'); // Botón para enviar la respuesta elegida
+    const quizNext = document.getElementById('quiz-next'); // Botón para pasar a la siguiente pregunta del quiz
+
+    // ===== Variables de estado del juego =====
+    let player1Position = 1; // Posición inicial del jugador 1
+    let player2Position = 1; // Posición inicial del jugador 2
+    let currentPlayer = 1; // Define qué jugador está jugando (1 o 2)
+    let currentHookePosition = null; // Guarda la casilla donde ocurre un evento de la Ley de Hooke
+    let isQuizActive = false; // Indica si el quiz está activo para pausar el juego
+
+    // ===== Serpientes del tablero =====
+    const snakes = {
+        16: 6,   // Si el jugador cae en la casilla 16, baja a la casilla 6
+        47: 26,  // Si el jugador cae en la casilla 47, baja a la casilla 26
+        49: 11,  // Si el jugador cae en la casilla 49, baja a la casilla 11
+
+    56: 53,  // Si caes en la casilla 56, bajas a la 53.
+    62: 19,  // Si caes en la casilla 62, bajas a la 19.
+    64: 60,  // Si caes en la casilla 64, bajas a la 60.
+    87: 24,  // Si caes en la casilla 87, bajas a la 24.
+    93: 73,  // Si caes en la casilla 93, bajas a la 73.
+    95: 75,  // Si caes en la casilla 95, bajas a la 75.
+    98: 78   // Si caes en la casilla 98, bajas a la 78.
+};
+
+// Escaleras del tablero (clave = inicio, valor = destino)
+const ladders = {
+    1: 38,   // Si caes en la casilla 1, subes a la 38.
+    4: 14,   // Si caes en la casilla 4, subes a la 14.
+    9: 31,   // Si caes en la casilla 9, subes a la 31.
+    21: 42,  // Si caes en la casilla 21, subes a la 42.
+    28: 84,  // Si caes en la casilla 28, subes a la 84.
+    36: 44,  // Si caes en la casilla 36, subes a la 44.
+    51: 67,  // Si caes en la casilla 51, subes a la 67.
+    71: 91,  // Si caes en la casilla 71, subes a la 91.
+    80: 100  // Si caes en la casilla 80, subes a la 100 (meta).
+};
+
+// Eventos especiales relacionados con la Ley de Hooke
+const hookeEvents = {
+    10: { // Evento en la casilla 10
+        type: 'spring_stretch', // Tipo de evento (resorte estirado)
+        title: '¡Resorte Estirado!', // Título del evento
+        description: 'Has caído en un resorte que se está estirando. La Ley de Hooke describe esta fuerza.', // Descripción
+        question: '¿Cuál es la fórmula de la Ley de Hooke para un resorte estirado?', // Pregunta
+        options: [ // Opciones de respuesta
+                    'F = k × x', // Opción 1: Fórmula correcta de la Ley de Hooke
+                    'F = m × a', // Opción 2: Segunda ley de Newton (no es Hooke)
+                    'F = G × m₁ × m₂ / r²', // Opción 3: Ley de gravitación universal (no es Hooke)
+                    'F = q₁ × q₂ / (4πϵ₀ × r²)' // Opción 4: Ley de Coulomb (no es Hooke)
+        ], // Cierre del arreglo de opciones del evento
+
+        correct: 0, // Índice de la opción correcta (0 => primera opción 'F = k × x')
+        explanation: 'Correcto! La Ley de Hooke establece que F = k × x, donde F es la fuerza de restauración, k es la constante del resorte y x es el desplazamiento.', // Explicación que se mostrará tras responder
+        effect: 'lose_turn' // Efecto del evento: en este caso la consecuencia es 'perder turno'
+        }, // Cierre del objeto del evento (por ejemplo, evento para la casilla 10)
+
+            30: { // Evento en la casilla 30
+                type: 'spring_compress', // Tipo: resorte comprimido
+                title: '¡Resorte Comprimido!', // Título del evento
+                description: 'Un resorte comprimido ejerce una fuerza de restauración hacia su posición de equilibrio.', // Descripción del evento
+                question: '¿Qué dirección tiene la fuerza en un resorte comprimido según la Ley de Hooke?', // Pregunta del quiz
+                options: [ // Opciones de respuesta para este evento
+                    'Hacia la posición de equilibrio (F = -k × x)', // Opción 0 (correcta)
+                    'Lejos de la posición de equilibrio (F = k × x)', // Opción 1
+                    'No hay fuerza de restauración', // Opción 2
+                    'Solo hacia arriba' // Opción 3
+                ],
+                correct: 0, // Índice de la opción correcta para la casilla 30
+                explanation: '¡Excelente! La fuerza siempre apunta hacia la posición de equilibrio. Para compresión, x es negativo, por lo que F = -k × x es positiva (hacia la derecha).', // Explicación tras responder
+                effect: 3 // Efecto numérico: mueve al jugador +3 casillas (según tu lógica)
+            },
+
+            60: { // Evento en la casilla 60
+                type: 'elastic_limit', // Tipo: límite elástico
+                title: '¡Límite Elástico!', // Título del evento
+                description: 'Has superado el límite elástico de un resorte. Más allá de este punto, no regresa a su forma original.', // Descripción
+                question: '¿Qué sucede cuando un resorte supera su límite elástico?', // Pregunta del quiz
+                options: [ // Opciones para la casilla 60
+                    'Se deforma permanentemente', // Opción 0 (correcta)
+                    'Se vuelve más rígido', // Opción 1
+                    'La constante k aumenta', // Opción 2
+                    'No pasa nada' // Opción 3
+                ],
+                correct: 0, // Índice de la respuesta correcta
+                explanation: 'Correcto. El límite elástico es el punto máximo donde el resorte puede deformarse elásticamente. Más allá de este límite, la deformación se vuelve plástica.', // Explicación
+                effect: -5 // Efecto numérico: retrocede 5 casillas (según tu lógica)
+            },
+
+            85: { // Evento en la casilla 85
+                type: 'ideal_spring', // Tipo: resorte ideal
+                title: '¡Resorte Ideal!', // Título del evento
+                description: 'Un resorte ideal sigue perfectamente la Ley de Hooke en todo su rango de deformación.', // Descripción
+                question: '¿Cuál es la característica principal de un resorte ideal?', // Pregunta del quiz
+                options: [ // Opciones para la casilla 85
+                    'F = -k × x es válida para cualquier deformación', // Opción 0 (correcta)
+                    'Solo funciona en compresión', // Opción 1
+                    'La constante k cambia con el tiempo', // Opción 2
+                    'No tiene energía potencial elástica' // Opción 3
+                ],
+                correct: 0, // Índice de la respuesta correcta
+                explanation: '¡Muy bien! Un resorte ideal obedece F = -k × x linealmente para cualquier deformación, almacenando energía potencial elástica U = ½kx².', // Explicación
+                effect: 5 // Efecto numérico: avanza 5 casillas (según tu lógica)
+            }
+        }; // Cierre del objeto hookeEvents 
+
+        function createBoard() { // Función que crea el tablero del juego dinámicamente
+    boardElement.innerHTML = ''; // Limpia cualquier contenido previo del tablero
+
+    for (let i = 100; i >= 1; i--) { // Recorre los números del 100 al 1 (tablero descendente)
+        const cell = document.createElement('div'); // Crea un nuevo div para cada casilla
+        cell.classList.add('cell'); // Agrega la clase CSS "cell" a cada casilla
+        cell.id = `cell-${i}`; // Asigna un id único a cada celda (por ejemplo: cell-1, cell-2, etc.)
+        
+        // Crear un elemento span para mostrar el número de la casilla
+        const numberSpan = document.createElement('span'); // Crea el elemento span
+        numberSpan.textContent = i; // Asigna el número de la casilla al texto
+        cell.appendChild(numberSpan); // Agrega el número dentro de la celda
+
+        // ===== Aplicar clases especiales según el tipo de casilla =====
+        if (i === 1) { // Si la casilla es la número 1
+            cell.classList.add('start-cell'); // Marca esta casilla como "inicio"
+            cell.title = '¡Inicio del juego! Comienza aquí.'; // Texto al pasar el cursor
+        } else if (i === 100) { // Si la casilla es la número 100
+            cell.classList.add('goal-cell'); // Marca esta casilla como "meta"
+            cell.title = '¡Meta! El primero en llegar aquí gana.'; // Texto descriptivo
+        } else if (snakes[i]) { // Si la casilla contiene una serpiente
+            cell.classList.add('snake-start'); // Agrega estilo especial para serpiente
+            cell.title = `Serpiente: Baja a la casilla ${snakes[i]}`; // Texto explicando hacia dónde baja
+        } else if (ladders[i]) { // Si la casilla contiene una escalera
+            cell.classList.add('ladder-start'); // Agrega estilo especial para escalera
+            cell.title = `Escalera: Sube a la casilla ${ladders[i]}`; // Texto explicando hacia dónde sube
+        } else if (hookeEvents[i]) { // Si la casilla tiene un evento de la Ley de Hooke
+            cell.classList.add('hooke-event'); // Clase especial para evento Hooke
+            cell.title = `Evento Hooke: ${hookeEvents[i].title}`; // Muestra el título del evento en el tooltip
+        }
+        
+        boardElement.appendChild(cell); // Finalmente, añade la celda al tablero
+    }
+
+    // ===== Crear piezas de los jugadores =====
+    const player1Piece = document.createElement('div'); // Crea la pieza del jugador 1
+    player1Piece.id = 'player1-piece'; // Asigna su id
+    player1Piece.classList.add('player1'); // Aplica su clase CSS
+
+    const player2Piece = document.createElement('div'); // Crea la pieza del jugador 2
+    player2Piece.id = 'player2-piece'; // Asigna su id
+    player2Piece.classList.add('player2'); // Aplica su clase CSS
+
+    const startCell = document.getElementById('cell-1'); // Obtiene la casilla de inicio (celda 1)
+    startCell.appendChild(player1Piece); // Coloca la pieza del jugador 1 en la casilla 1
+    startCell.appendChild(player2Piece); // Coloca la pieza del jugador 2 en la casilla 1
+ } // Fin de la función createBoard
+        
+        function movePlayer(player, newPosition) { // Función que mueve la ficha del jugador a una nueva posición
+
+    const playerPiece = document.getElementById(`player${player}-piece`); // Obtiene el elemento DOM de la ficha del jugador (por ejemplo: player1-piece)
+    if (!playerPiece) return; // Si no existe la ficha en el DOM, sale de la función
+
+    if (newPosition < 1) newPosition = 1; // Evita moverse a posiciones < 1
+    if (newPosition > boardSize) newPosition = boardSize; // Evita moverse a posiciones > boardSize
+
+    const targetCell = document.getElementById(`cell-${newPosition}`); // Obtiene la celda destino por su id (por ejemplo: cell-42)
+    if (targetCell) { // Si la celda destino existe en el DOM
+
+        // Remover de la celda actual si existe
+        if (playerPiece.parentNode) { // Comprueba si la ficha tiene un nodo padre (está dentro de alguna celda)
+            playerPiece.parentNode.removeChild(playerPiece); // Remueve la ficha de su celda actual
+        }
+
+        targetCell.appendChild(playerPiece); // Añade la ficha a la celda destino
+
+        // Animación de llegada (efecto visual)
+        playerPiece.style.transform = 'scale(1.2)'; // Escala la ficha al llegar
+        setTimeout(() => { // Después de 300 ms
+            playerPiece.style.transform = 'scale(1)'; // Vuelve la ficha a su tamaño normal
+        }, 300);
+    }
+
+    if (player === 1) { // Si el jugador que se movió es el jugador 1
+        player1Position = newPosition; // Actualiza la posición interna del jugador 1
+        player1PosElement.textContent = player1Position; // Muestra la nueva posición en la interfaz
+    } else { // Si no, asume que es el jugador 2
+        player2Position = newPosition; // Actualiza la posición interna del jugador 2
+        player2PosElement.textContent = player2Position; // Muestra la nueva posición en la interfaz
+    }
+
+    adjustPlayerPositions(); // Ajusta la posición visual relativa de las fichas (si coinciden en la misma casilla)
+} // Fin de la función movePlayer
+
+        function adjustPlayerPositions() { // Función que ajusta visualmente las fichas cuando coinciden en la misma casilla
+    const player1Piece = document.getElementById('player1-piece'); // Obtiene el elemento DOM de la ficha del jugador 1
+    const player2Piece = document.getElementById('player2-piece'); // Obtiene el elemento DOM de la ficha del jugador 2
+    
+    if (player1Position === player2Position && player1Piece && player2Piece && player1Position !== 1) { 
+        // Si ambos jugadores están en la misma casilla, las fichas existen y no están en la casilla inicial (1)
+        player1Piece.style.transform = 'translate(-15px, -15px) scale(0.8)'; // Desplaza y reduce la ficha del jugador 1 para que ambas quepan
+        player2Piece.style.transform = 'translate(15px, -15px) scale(0.8)'; // Desplaza y reduce la ficha del jugador 2 para que ambas quepan
+    } else {
+        // Si no están en la misma casilla (o están en la casilla 1), restablece su apariencia normal
+        if (player1Piece) player1Piece.style.transform = 'scale(1) translate(0, 0)'; // Restablece transform de la ficha 1 si existe
+        if (player2Piece) player2Piece.style.transform = 'scale(1) translate(0, 0)'; // Restablece transform de la ficha 2 si existe
+    }
+} // Fin de adjustPlayerPositions
+
+        function showMessage(msg, type = 'info') { // Muestra un mensaje en el área de mensajes con un "tipo" (info, success, warning, error...)
+    messageElement.textContent = msg; // Inserta el texto del mensaje en el elemento correspondiente
+    messageElement.className = `hidden ${type}`; // Reinicia las clases del elemento y agrega la clase del tipo
+    messageElement.classList.remove('hidden'); // Quita la clase que lo oculta para hacerlo visible
+    messageElement.classList.add(type); // Añade la clase que representa el tipo visual (por ejemplo: 'info' o 'success')
+} // Fin de showMessage
+
+        // Funciones del Quiz
+        function showQuiz(position) { // Abre el modal del quiz para la casilla indicada
+    if (!hookeEvents[position]) return; // Si no hay evento Hooke en esa posición, salir
+
+    currentHookePosition = position; // Guarda la posición actual del evento Hooke
+    isQuizActive = true; // Marca que el quiz está activo (pausa otras acciones)
+    rollDiceButton.disabled = true; // Desactiva el botón de lanzar dado mientras responde
+
+    const event = hookeEvents[position]; // Obtiene el objeto del evento Hooke para esa casilla
+    quizModal.style.display = 'flex'; // Muestra el modal (cambiando su display)
+
+    // Inserta el contenido del evento (título, descripción y pregunta) en el modal
+    quizQuestion.innerHTML = `
+        <strong style="color: var(--dark-blue-text);">${event.title}</strong><br>
+        ${event.description}<br><br>
+        <strong style="color: var(--dark-blue-text);">Pregunta:</strong> ${event.question}
+    `;
+
+    quizOptions.innerHTML = ''; // Limpia cualquier opción previa en el modal
+
+    // Crea una opción por cada ítem en event.options
+    event.options.forEach((option, index) => {
+        const optionDiv = document.createElement('div'); // Crea el contenedor de la opción
+        optionDiv.className = 'quiz-option'; // Aplica la clase CSS correspondiente
+        optionDiv.textContent = option; // Inserta el texto de la opción
+        optionDiv.onclick = () => selectOption(optionDiv, index); // Asigna el manejador de selección
+        quizOptions.appendChild(optionDiv); // Añade la opción al contenedor de opciones
+    });
+
+    quizFeedback.style.display = 'none'; // Oculta la retroalimentación inicialmente
+    quizSubmit.style.display = 'inline-block'; // Muestra el botón de enviar
+    quizNext.style.display = 'none'; // Oculta el botón "Siguiente" hasta que se envíe
+
+} // Fin de showQuiz
+
+function selectOption(optionElement, index) { // Marca una opción como seleccionada
+    document.querySelectorAll('.quiz-option').forEach(el => { // Recorre todas las opciones
+        el.classList.remove('selected'); // Quita la clase "selected" en todas
+    });
+    optionElement.classList.add('selected'); // Añade "selected" a la opción elegida
+} // Fin de selectOption
+
+function submitQuiz() { // Procesa la respuesta seleccionada del quiz
+    if (!currentHookePosition) return; // Si no hay un evento activo, salir
+
+    const event = hookeEvents[currentHookePosition]; // Obtiene el objeto del evento Hooke activo
+
+            const selectedOption = document.querySelector('.quiz-option.selected'); // Obtiene la opción que tiene la clase "selected" (la elegida por el jugador)
+            
+if (!selectedOption) { // Si no hay ninguna opción seleccionada
+    alert('Por favor, selecciona una opción.'); // Muestra una alerta pidiendo que seleccione una opción
+    return; // Sale de la función sin procesar nada más
+}
+            
+const selectedIndex = Array.from(quizOptions.children).indexOf(selectedOption); // Calcula el índice de la opción seleccionada dentro del contenedor de opciones
+const isCorrect = selectedIndex === event.correct; // Comprueba si el índice seleccionado coincide con el índice correcto del evento
+            
+quizFeedback.style.display = 'block'; // Muestra el contenedor de retroalimentación
+quizFeedback.className = `feedback-${isCorrect ? 'correct' : 'incorrect'}`; // Asigna una clase indicando si la respuesta fue correcta o incorrecta
+            
+if (isCorrect) { // Si la respuesta es correcta
+    quizFeedback.innerHTML = `
+        <strong>¡Correcto! 🎉</strong><br>
+        ${event.explanation}
+    `; // Inserta el mensaje y la explicación en el contenedor de feedback
+    applyHookeEffect(event.effect, true); // Aplica el efecto del evento considerando respuesta correcta
+} else { // Si la respuesta es incorrecta
+    quizFeedback.innerHTML = `
+        <strong>Respuesta incorrecta. 😔</strong><br>
+        La respuesta correcta es: "${event.options[event.correct]}"<br>
+        ${event.explanation}
+    `; // Inserta el mensaje indicando la respuesta correcta y la explicación
+    applyHookeEffect(event.effect, false); // Aplica el efecto del evento considerando respuesta incorrecta
+}
+            
+quizSubmit.style.display = 'none'; // Oculta el botón de enviar después de responder
+quizNext.style.display = 'inline-block'; // Muestra el botón "Siguiente" para continuar
+            
+document.querySelectorAll('.quiz-option').forEach((option, index) => { // Recorre todas las opciones de respuesta
+    if (index === event.correct) { // Si la opción es la correcta
+        option.classList.add('correct'); // Marca la opción correcta (clase visual)
+    } else if (index === selectedIndex && !isCorrect) { // Si la opción es la seleccionada pero es incorrecta
+        option.classList.add('incorrect'); // Marca la opción seleccionada como incorrecta
+    }
+    option.style.pointerEvents = 'none'; // Deshabilita los clics en todas las opciones para que no puedan seleccionarse de nuevo
+});
+
+        function nextQuiz() { // Función que se ejecuta al presionar "Siguiente" en el quiz
+    quizModal.style.display = 'none'; // Oculta el modal del quiz
+    isQuizActive = false; // Marca que el quiz ya no está activo
+    rollDiceButton.disabled = false; // Habilita nuevamente el botón para lanzar el dado
+    currentHookePosition = null; // Resetea la posición del evento Hooke actual
+            
+    setTimeout(() => { // Espera 500 ms antes de ejecutar el cambio de turno
+        switchPlayer(); // Cambia el turno al siguiente jugador
+        showMessage(`Turno del Jugador ${currentPlayer}. ¡Sigue aprendiendo sobre la Ley de Hooke!`, 'info'); // Muestra mensaje de turno
+    }, 500);
+}
+
+function applyHookeEffect(effect, correctAnswer) { // Aplica el efecto de un evento Hooke según la respuesta
+    const currentPos = currentPlayer === 1 ? player1Position : player2Position; // Obtiene la posición actual del jugador
+            
+    if (typeof effect === 'number') { // Si el efecto es un número (movimiento)
+        let movement = effect; // Inicializa el movimiento con el valor del efecto
+        if (correctAnswer && effect > 0) { // Si la respuesta es correcta y el efecto positivo
+            movement = effect * 1.5; // Aumenta el movimiento
+        } else if (!correctAnswer && effect < 0) { // Si la respuesta es incorrecta y el efecto negativo
+            movement = effect * 0.5; // Reduce el movimiento
+        }
+                
+        const finalPos = Math.max(1, Math.min(boardSize, currentPos + movement)); // Calcula la posición final dentro de los límites del tablero
+        movePlayer(currentPlayer, finalPos); // Mueve al jugador a la nueva posición
+        showMessage(`Te mueves ${movement > 0 ? 'hacia adelante' : 'hacia atrás'} ${Math.abs(movement)} casillas. Nueva posición: ${finalPos}`, 
+            movement > 0 ? 'success' : 'warning'); // Muestra mensaje de movimiento
+    } else if (effect === 'lose_turn') { // Si el efecto es perder turno
+        if (correctAnswer) { // Si la respuesta fue correcta
+            showMessage('¡Respuesta correcta! No pierdes el turno esta vez.', 'success'); // Muestra mensaje positivo
+        } else { // Si la respuesta fue incorrecta
+            showMessage('Pierdes un turno por la respuesta incorrecta.', 'warning'); // Muestra mensaje de advertencia
+        }
+    }
+}
+
+// Event listeners para el quiz
+quizSubmit.addEventListener('click', submitQuiz); // Asocia el botón "Responder" con la función submitQuiz
+quizNext.addEventListener('click', nextQuiz); // Asocia el botón "Siguiente" con la función nextQuiz
+
+
+        // Event listener principal del juego
+        rollDiceButton.addEventListener('click', () => { // Event listener para el botón de lanzar el dado
+    if (isQuizActive) return; // Si el quiz está activo, no permite tirar el dado
+            
+    rollDiceButton.disabled = true; // Desactiva el botón mientras se procesa el turno
+    diceDisplayElement.classList.add('rolling'); // Agrega clase para animación de dado
+    diceDisplayElement.textContent = '?'; // Muestra '?' mientras se lanza el dado
+
+    setTimeout(() => { // Simula tiempo de lanzamiento del dado
+        const diceRoll = Math.floor(Math.random() * 6) + 1; // Genera número aleatorio del dado (1-6)
+        diceDisplayElement.textContent = diceRoll; // Muestra el resultado del dado
+        diceDisplayElement.classList.remove('rolling'); // Quita la animación de lanzamiento
+
+        let currentPos = currentPlayer === 1 ? player1Position : player2Position; // Posición actual del jugador
+        let newPosition = currentPos + diceRoll; // Calcula nueva posición según el dado
+
+        if (newPosition > boardSize) { // Si se pasa del tamaño del tablero
+            showMessage(`¡Te pasaste de la casilla ${boardSize}! Necesitas exactamente ${boardSize - currentPos} para ganar.`, 'warning'); // Muestra advertencia
+            switchPlayer(); // Cambia de turno
+            rollDiceButton.disabled = false; // Reactiva el botón
+            return; // Sale de la función
+        }
+
+        // Mover jugador con animación
+        movePlayer(currentPlayer, newPosition); // Llama a la función para mover al jugador
+        currentPos = newPosition; // Actualiza posición actual
+
+        // Verificar serpientes y escaleras
+        if (snakes[currentPos]) { // Si la casilla tiene serpiente
+            showMessage(`¡Serpiente! 🐍 Bajas a la casilla ${snakes[currentPos]}.`, 'error'); // Mensaje de serpiente
+            setTimeout(() => { // Retardo para animación
+                movePlayer(currentPlayer, snakes[currentPos]); // Mueve jugador a la casilla de la serpiente
+                checkVictory(); // Verifica si hay victoria
+                if (!isQuizActive) switchPlayer(); // Cambia turno si no hay quiz activo
+                rollDiceButton.disabled = false; // Reactiva botón
+            }, 1200);
+            return; // Sale de la función
+        } else if (ladders[currentPos]) { // Si la casilla tiene escalera
+
+                   showMessage(`¡Escalera! ⬆️ Subes a la casilla ${ladders[currentPos]}.`, 'success'); // Mensaje de escalera
+setTimeout(() => { // Retardo para animación
+    movePlayer(currentPlayer, ladders[currentPos]); // Mueve jugador a la casilla de la escalera
+    checkVictory(); // Verifica si hay victoria
+    if (!isQuizActive) switchPlayer(); // Cambia turno si no hay quiz activo
+    rollDiceButton.disabled = false; // Reactiva botón
+}, 1200);
+return; // Sale de la función
+}
+
+// Verificar eventos de Hooke
+if (hookeEvents[currentPos]) { // Si hay un evento de Hooke en la casilla
+    showMessage(`¡Evento de la Ley de Hooke en la casilla ${currentPos}! Responde la pregunta para continuar.`, 'info'); // Mensaje del evento
+    setTimeout(() => {
+        showQuiz(currentPos); // Muestra el quiz
+    }, 1000);
+    return; // Sale de la función
+}
+
+// Verificar victoria
+if (checkVictory()) { // Si algún jugador llegó a la meta
+    rollDiceButton.disabled = true; // Desactiva el botón
+} else {
+    switchPlayer(); // Cambia de turno
+    rollDiceButton.disabled = false; // Reactiva botón
+}
+}, 800); // Retardo para animación final del dado
+});
+
+// Función para verificar victoria
+function checkVictory() {
+    if (player1Position >= boardSize) { // Si jugador 1 llegó a la meta
+        showMessage('¡Jugador 1 ha llegado a la META! 🏆 ¡Ganaste!', 'success'); // Mensaje de victoria
+        rollDiceButton.disabled = true; // Desactiva botón
+        // Animación de victoria
+        const goalCell = document.getElementById('cell-100'); // Selecciona la celda meta
+        if (goalCell) {
+            goalCell.style.animation = 'victoryGlow 1s ease-in-out infinite'; // Aplica animación
+        }
+        return true; // Retorna true indicando victoria
+    } else if (player2Position >= boardSize) { // Si jugador 2 llegó a la meta
+        showMessage('¡Jugador 2 ha llegado a la META! 🏆 ¡Ganaste!', 'success'); // Mensaje de victoria
+        rollDiceButton.disabled = true; // Desactiva botón
+        // Animación de victoria
+        const goalCell = document.getElementById('cell-100'); // Selecciona la celda meta
+        if (goalCell) {
+            goalCell.style.animation = 'victoryGlow 1s ease-in-out infinite'; // Aplica animación
+        }
+        return true; // Retorna true indicando victoria
+    }
+    return false; // No hay victoria
+}
+
+// Función para cambiar de jugador
+function switchPlayer() {
+    currentPlayer = currentPlayer === 1 ? 2 : 1; // Alterna el jugador actual
+    currentPlayerElement.textContent = currentPlayer; // Actualiza número de jugador en la UI
+    const playerColor = currentPlayer === 1 ? '#7986CB' : '#EF9A9A'; // Define color según jugador
+    currentPlayerElement.style.color = playerColor; // Aplica color
+    showMessage(`Turno del Jugador ${currentPlayer} - ¡Lanza el dado!`, 'info'); // Mensaje de turno
+}
+
+// Inicializar juego
+createBoard(); // Crea el tablero
+movePlayer(1, 1); // Coloca jugador 1 en posición inicial
+movePlayer(2, 1); // Coloca jugador 2 en posición inicial
+showMessage('¡Bienvenido! Comienza en la casilla INICIO 🏁 y llega primero a la META 🏆', 'success'); // Mensaje de bienvenida
+</script><!--cierre de seccion-->
+</body><!--cierre de body-->
+</html><!--cierre de html-->
